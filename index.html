@@ -1,10 +1,29 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Weight Tracker Dashboard</title>
+
+  <!-- Tableau embed script -->
   <script type="module" src="https://10ax.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+
+  <!-- Responsive styling -->
+  <style>
+    /* Make tableau-viz fill width and keep aspect ratio */
+    tableau-viz {
+      width: 100% !important;
+      height: 80vh !important; /* 80% of viewport height */
+      max-width: 1400px;
+      margin: 0 auto;
+      display: block;
+    }
+
+    /* Remove default margin/padding for better fit */
+    body {
+      margin: 0;
+      padding: 0 10px;
+    }
+  </style>
 </head>
 <body>
   <h1>My Tableau Dashboard</h1>
@@ -12,11 +31,8 @@
   <tableau-viz
     id="tableau-viz"
     src="https://10ax.online.tableau.com/t/josedlr00/views/WeightTrackerDashboard/MainDash"
-    width="1400"
-    height="700"
     hide-tabs
     toolbar="top">
   </tableau-viz>
-
 </body>
 </html>

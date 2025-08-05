@@ -2,36 +2,101 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-<title>Weight Tracker Dashboard</title>
+  <title>Dashboard Hub</title>
 
   <!-- Tableau embed script -->
   <script type="module" src="https://10ax.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
 
-  <!-- Responsive styling -->
+  <!-- Styling -->
   <style>
-    /* Make tableau-viz fill width and keep aspect ratio */
-    tableau-viz {
-    width: 100% !important;
-    height: 100vh !important;  /* changed from 80vh to 100vh */
-    max-width: 1400px;
-    margin: 0 auto;
-    display: block;
-    }
-
-    /* Remove default margin/padding for better fit */
     body {
       margin: 0;
-      padding: 0 10px;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    .menu {
+      margin: 20px;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .menu button {
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background-color: #0078d4;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    .menu button:hover {
+      background-color: #005fa3;
+    }
+
+    .content {
+      width: 100%;
+      max-width: 1400px;
+      min-height: 80vh;
+      margin: 20px auto;
+      display: none;
+    }
+
+    iframe, tableau-viz {
+      width: 100%;
+      height: 100vh;
+      border: none;
     }
   </style>
 </head>
 <body>
 
-  <tableau-viz
-    id="tableau-viz"
-    src="https://10ax.online.tableau.com/t/josedlr00/views/WeightTrackerDashboard/MainDash"
-    hide-tabs
-    toolbar="top">
-  </tableau-viz>
+  <h1>Select a View</h1>
+
+  <div class="menu">
+    <button onclick="showView('tableau')">Tableau Dashboard</button>
+    <button onclick="showView('sheets')">Google Sheets</button>
+    <button onclick="showView('calendar')">Notion Calendar</button>
+  </div>
+
+  <div id="tableau" class="content">
+    <tableau-viz
+      id="tableau-viz"
+      src="https://10ax.online.tableau.com/t/josedlr00/views/WeightTrackerDashboard/MainDash"
+      hide-tabs
+      toolbar="top">
+    </tableau-viz>
+  </div>
+
+  <div id="sheets" class="content">
+    <iframe src="https://docs.google.com/spreadsheets/d/1CpnTpxmUUHqJXpCurCIsjU-AQgqy2CwEkvJ-ASeVhtY/edit?usp=sharing"></iframe>
+  </div>
+
+  <div id="calendar" class="content">
+    <iframe src="https://calendar.notion.so/calendar/am9zZWRscjAwQGdtYWlsLmNvbS85MThmNGIxYy00ZTJmLTRkYmItOWMxMy1iODY0ZGJiMTFlYzE="></iframe>
+  </div>
+
+  <script>
+    function showView(viewId) {
+      const views = document.querySelectorAll('.content');
+      views.forEach(view => view.style.display = 'none');
+
+      const selected = document.getElementById(viewId);
+      if (selected) selected.style.display = 'block';
+    }
+  </script>
+
 </body>
 </html>

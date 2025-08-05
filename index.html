@@ -7,9 +7,9 @@
   <!-- Tableau embed script -->
   <script type="module" src="https://10ax.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
 
-  <!-- Styling -->
   <style>
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
@@ -50,16 +50,15 @@
 
     .content {
       width: 100%;
-      max-width: 1400px;
-      min-height: 80vh;
-      margin: 20px auto;
-      display: none;
+      height: 100vh;
       position: relative;
+      display: none;
     }
 
-    iframe, tableau-viz {
+    tableau-viz,
+    iframe {
       width: 100%;
-      height: 100vh;
+      height: 100%;
       border: none;
     }
 
@@ -72,7 +71,7 @@
       flex-direction: column;
       font-weight: bold;
       font-size: 4vw;
-      height: 100vh;
+      height: 100%;
       width: 100%;
     }
 
@@ -80,6 +79,7 @@
       position: absolute;
       top: 10px;
       left: 10px;
+      z-index: 10;
     }
   </style>
 </head>
@@ -94,7 +94,7 @@
     <button onclick="showView('clock')">Today's Date & Time</button>
   </div>
 
-  <!-- Tableau -->
+  <!-- Tableau Dashboard -->
   <div id="tableau" class="content">
     <div class="back-container"><button class="back-btn" onclick="goBack()">← Back</button></div>
     <tableau-viz
@@ -139,7 +139,12 @@
 
       if (viewId === 'clock') {
         updateClock();
-        setInterval(updateClock, 1000);
+        if (!window.clockInterval) {
+          window.clockInterval = setInterval(updateClock, 1000);
+        }
+      } else {
+        clearInterval(window.clockInterval);
+        window.clockInterval = null;
       }
     }
 

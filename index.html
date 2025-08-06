@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Dashboard Hub</title>
 
-  <!-- Tableau embed script -->
   <script type="module" src="https://10ax.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
 
   <style>
@@ -91,7 +90,6 @@
       gap: 10px;
     }
 
-    /* Clock Styling */
     #clockView {
       display: flex;
       justify-content: center;
@@ -100,6 +98,7 @@
       background-color: black;
       gap: 5vw;
       flex-wrap: wrap;
+      padding-bottom: 80px;
     }
 
     .clock-box {
@@ -144,6 +143,26 @@
       z-index: 2;
     }
 
+    #regularTime {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.6vw;
+      color: white;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    #temperature {
+      position: absolute;
+      bottom: 10px;
+      right: 20px;
+      font-size: 1.6vw;
+      color: white;
+      font-weight: 500;
+    }
+
     @media (max-width: 800px) {
       .clock-box {
         width: 40vw;
@@ -156,6 +175,11 @@
 
       .clock-label {
         font-size: 4vw;
+      }
+
+      #regularTime,
+      #temperature {
+        font-size: 3.5vw;
       }
     }
   </style>
@@ -208,53 +232,58 @@
       <button class="fullscreen-btn" id="enterFull" onclick="goFullScreen()">⛶ Full Screen</button>
       <button class="fullscreen-btn" id="exitFull" onclick="exitFullScreen()" style="display:none;">✕ Exit Full Screen</button>
     </div>
+
     <div id="clockView">
       <div class="clock-box">
-        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 100 100">
-          <circle r="48" cx="50" cy="50" stroke-dasharray="301.59" stroke-dashoffset="0" id="hourRing" />
+        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 120 120">
+          <circle r="50" cx="60" cy="60" stroke-dasharray="314.16" stroke-dashoffset="0" id="hourRing" />
         </svg>
         <div id="clockHour" class="clock-number">--</div>
         <div class="clock-label">HOURS</div>
       </div>
       <div class="clock-box">
-        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 100 100">
-          <circle r="48" cx="50" cy="50" stroke-dasharray="301.59" stroke-dashoffset="0" id="minuteRing" />
+        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 120 120">
+          <circle r="50" cx="60" cy="60" stroke-dasharray="314.16" stroke-dashoffset="0" id="minuteRing" />
         </svg>
         <div id="clockMinute" class="clock-number">--</div>
         <div class="clock-label">MINUTES</div>
       </div>
       <div class="clock-box">
-        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 100 100">
-          <circle r="48" cx="50" cy="50" stroke-dasharray="301.59" stroke-dashoffset="0" id="secondRing" />
+        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 120 120">
+          <circle r="50" cx="60" cy="60" stroke-dasharray="314.16" stroke-dashoffset="0" id="secondRing" />
         </svg>
         <div id="clockSecond" class="clock-number">--</div>
         <div class="clock-label">SECONDS</div>
       </div>
     </div>
+
+    <!-- Regular Time + Temperature -->
+    <div id="regularTime">--</div>
+    <div id="temperature">72°F</div>
   </div>
 
   <script>
-    const CIRCLE_LENGTH = 2 * Math.PI * 48; // ~301.59
+    const CIRCLE_LENGTH = 2 * Math.PI * 50;
 
     function updateClock() {
       const now = new Date();
+
       const hours = now.getHours();
       const minutes = now.getMinutes();
       const seconds = now.getSeconds();
 
-      // Update numbers
       document.getElementById("clockHour").textContent = String(hours).padStart(2, '0');
       document.getElementById("clockMinute").textContent = String(minutes).padStart(2, '0');
       document.getElementById("clockSecond").textContent = String(seconds).padStart(2, '0');
 
-      // Update progress rings
-      const hourPercent = (hours % 24) / 24;
-      const minPercent = minutes / 60;
-      const secPercent = seconds / 60;
+      document.getElementById("hourRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - (hours % 24) / 24);
+      document.getElementById("minuteRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - minutes / 60);
+      document.getElementById("secondRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - seconds / 60);
 
-      document.getElementById("hourRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - hourPercent);
-      document.getElementById("minuteRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - minPercent);
-      document.getElementById("secondRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - secPercent);
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateStr = now.toLocaleDateString(undefined, options);
+      const timeStr = now.toLocaleTimeString();
+      document.getElementById("regularTime").textContent = `${dateStr} - ${timeStr}`;
     }
 
     function showScreen(screenId) {

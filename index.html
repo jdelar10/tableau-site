@@ -49,7 +49,8 @@
     }
 
     .menu-screen button,
-    .back-btn {
+    .back-btn,
+    .fullscreen-btn {
       padding: 12px 24px;
       font-size: 18px;
       border: none;
@@ -61,7 +62,8 @@
     }
 
     .menu-screen button:hover,
-    .back-btn:hover {
+    .back-btn:hover,
+    .fullscreen-btn:hover {
       background-color: #005fa3;
     }
 
@@ -76,6 +78,13 @@
       position: absolute;
       top: 10px;
       left: 10px;
+      z-index: 10;
+    }
+
+    .fullscreen-btn-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
       z-index: 10;
     }
 
@@ -137,6 +146,9 @@
     <div class="back-btn-container">
       <button class="back-btn" onclick="goBack()">← Back</button>
     </div>
+    <div class="fullscreen-btn-container">
+      <button class="fullscreen-btn" onclick="goFullScreen()">⛶ Full Screen</button>
+    </div>
     <div id="clockView">
       <div id="dateText"></div>
       <div id="timeText"></div>
@@ -169,6 +181,17 @@
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById("dateText").textContent = now.toLocaleDateString(undefined, options);
       document.getElementById("timeText").textContent = now.toLocaleTimeString();
+    }
+
+    function goFullScreen() {
+      const el = document.getElementById("clockScreen");
+      if (el.requestFullscreen) {
+        el.requestFullscreen();
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen();
+      }
     }
   </script>
 

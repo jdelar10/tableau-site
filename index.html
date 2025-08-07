@@ -1,128 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Full Screen Clock</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minimal Clock</title>
+<style>
+    body {
+        background-color: black;
+        color: white;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
 
-        #main-menu, #tableau-view, #website-view, #clock-view {
-            display: none;
-            width: 100%;
-            height: 100%;
-        }
+    /* Top bar with time and date */
+    .top-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        padding: 20px;
+        gap: 15px;
+    }
 
-        #main-menu {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+    #time {
+        font-size: 6rem;
+        font-weight: bold;
+    }
 
-        button {
-            padding: 15px 30px;
-            font-size: 1.2em;
-            margin: 10px;
-            cursor: pointer;
-        }
+    #date {
+        font-size: 1.5rem;
+        align-self: flex-end;
+    }
 
-        #time {
-            font-size: 10vw;
-            font-weight: bold;
-        }
+    /* Temperature in bottom right */
+    .bottom-right {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        font-size: 1.2rem;
+    }
 
-        #date {
-            font-size: 3vw;
-            margin-top: 10px;
-        }
+    /* Tiny back button */
+    .back-button {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 0.9rem;
+        color: white;
+        background: transparent;
+        border: none;
+        opacity: 0.2;
+        cursor: pointer;
+        transition: opacity 0.3s;
+    }
 
-        #temp {
-            font-size: 2vw;
-            position: absolute;
-            bottom: 20px;
-            right: 30px;
-        }
-    </style>
+    .back-button:hover {
+        opacity: 1;
+    }
+</style>
 </head>
 <body>
-    <!-- Main Menu -->
-    <div id="main-menu">
-        <button onclick="showTableau()">Open Tableau Dashboard</button>
-        <button onclick="showWebsite('https://www.google.com')">Open Google</button>
-        <button onclick="showClock()">Show Clock</button>
-    </div>
 
-    <!-- Tableau View -->
-    <div id="tableau-view">
-        <button onclick="goBack()">Back</button>
-        <iframe src="YOUR_TABLEAU_URL" width="100%" height="100%" style="border:none;"></iframe>
-    </div>
+<!-- Back button -->
+<button class="back-button" onclick="goBack()">Back</button>
 
-    <!-- Website View -->
-    <div id="website-view">
-        <button onclick="goBack()">Back</button>
-        <iframe id="website-frame" src="" width="100%" height="100%" style="border:none;"></iframe>
-    </div>
+<!-- Top section: time & date -->
+<div class="top-bar">
+    <div id="time">00:00 PM</div>
+    <div id="date">Thursday, August 7, 2025</div>
+</div>
 
-    <!-- Clock View -->
-    <div id="clock-view">
-        <button onclick="goBack()">Back</button>
-        <div id="time"></div>
-        <div id="date"></div>
-        <div id="temp">Loading...</div>
-    </div>
+<!-- Bottom right: temperature -->
+<div class="bottom-right" id="temperature">--°F</div>
 
-    <script>
-        function showTableau() {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('tableau-view').style.display = 'block';
-        }
+<script>
+function updateClock() {
+    const now = new Date();
 
-        function showWebsite(url) {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('website-frame').src = url;
-            document.getElementById('website-view').style.display = 'block';
-        }
+    // Time
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    document.getElementById('time').textContent = 
+        `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
 
-        function showClock() {
-            document.getElementById('main-menu').style.display = 'none';
-            document.getElementById('clock-view').style.display = 'flex';
-            updateClock();
-            setInterval(updateClock, 1000);
-            getTemperature();
-        }
+    // Date
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('date').textContent = now.toLocaleDateString(undefined, options);
+}
 
-        function goBack() {
-            document.getElementById('main-menu').style.display = 'flex';
-            document.getElementById('tableau-view').style.display = 'none';
-            document.getElementById('website-view').style.display = 'none';
-            document.getElementById('clock-view').style.display = 'none';
-        }
+// Dummy temperature (replace with API if needed)
+function updateTemperature() {
+    // Example: random temp for demo
+    const temp = Math.floor(Math.random() * 15) + 65;
+    document.getElementById('temperature').textContent = `${temp}°F`;
+}
 
-        function updateClock() {
-            const now = new Date();
-            const time = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const date = now.toLocaleDateString([], {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
-            document.getElementById('time').textContent = time;
-            document.getElementById('date').textContent = date;
-        }
+function goBack() {
+    // Replace with your back navigation logic
+    alert('Back button clicked');
+}
 
-        function getTemperature() {
-            // Dummy temp for now — can be replaced with live API call
-            document.getElementById('temp').textContent = "72°F";
-        }
-    </script>
+setInterval(updateClock, 1000);
+updateClock();
+updateTemperature();
+</script>
+
 </body>
 </html>

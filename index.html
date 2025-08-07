@@ -1,115 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Minimal Clock</title>
-<style>
-    body {
-        background-color: black;
-        color: white;
-        margin: 0;
-        padding: 0;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard Hub — Full Screen Clock</title>
+
+  <!-- Tableau embed (kept) -->
+  <script type="module" src="https://10ax.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+
+  <style>
+    /* Reset + base */
+    html,body {
+      height:100%;
+      width:100%;
+      margin:0;
+      padding:0;
+      background:#000;
+      color:#fff;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      overflow:hidden;
     }
 
-    /* Top bar with time and date */
-    .top-bar {
-        display: flex;
-        justify-content: flex-end;
-        align-items: flex-start;
-        padding: 20px;
-        gap: 15px;
+    /* generic screen container (all full-viewport) */
+    .screen {
+      position:absolute;
+      inset:0;              /* top:0; right:0; bottom:0; left:0 */
+      height:100vh;
+      width:100vw;
+      display:block;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .25s ease;
+      z-index:0;
     }
 
-    #time {
-        font-size: 6rem;
-        font-weight: bold;
+    .screen.active {
+      pointer-events:auto;
+      opacity:1;
+      z-index:1;
     }
 
-    #date {
-        font-size: 1.5rem;
-        align-self: flex-end;
+    /* Main menu (keeps layout simple) */
+    .menu-screen {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      background:#111;
+      flex-direction:column;
+    }
+    .menu-screen h1 { color:#fff; margin-bottom:8px; }
+    .menu-btn {
+      background:#0078d4;
+      color:#fff;
+      padding:12px 20px;
+      border-radius:8px;
+      border:none;
+      font-size:1.05rem;
+      cursor:pointer;
+    }
+    .menu-btn:hover { background:#005fa3; }
+
+    /* Generic iframe/tableau sizing */
+    iframe, tableau-viz {
+      width:100vw;
+      height:100vh;
+      border:0;
+      display:block;
     }
 
-    /* Temperature in bottom right */
-    .bottom-right {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        font-size: 1.2rem;
+    /* tiny back button top-left (barely noticeable) */
+    .back-btn {
+      position:absolute;
+      top:8px;
+      left:8px;
+      background:rgba(255,255,255,0.03);
+      color:rgba(255,255,255,0.15);
+      border:1px solid rgba(255,255,255,0.03);
+      padding:6px 8px;
+      font-size:0.85rem;
+      border-radius:4px;
+      cursor:pointer;
+      transition: color .18s ease, background .18s ease, transform .12s;
+      z-index:20;
+      opacity:0.6;
+    }
+    .back-btn:hover {
+      color:#fff;
+      background:rgba(255,255,255,0.05);
+      transform:translateY(-1px);
+      opacity:1;
     }
 
-    /* Tiny back button */
-    .back-button {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        font-size: 0.9rem;
-        color: white;
-        background: transparent;
-        border: none;
-        opacity: 0.2;
-        cursor: pointer;
-        transition: opacity 0.3s;
+    /* FULLSCREEN CLOCK view (centered, HUGE time) */
+    #clockScreen {
+      background:#000; /* ensure black */
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      padding:12vh 4vw 8vh 4vw; /* vertical space so big time can breathe */
     }
 
-    .back-button:hover {
-        opacity: 1;
+    /* Huge time text that scales with viewport — will take most of the screen */
+    #bigTime {
+      /* clamp(min, preferred, max) ensures it grows with screen */
+      font-size: clamp(48px, 22vw, 420px);
+      line-height: 0.9;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #fff;
+      text-align:center;
+      margin:0;
+      padding:0;
     }
-</style>
+
+    /* Date below time — smaller and lighter */
+    #bigDate {
+      margin-top: 0.7rem;
+      font-size: clamp(14px, 2.4vw, 36px);
+      color: rgba(255,255,255,0.9);
+      font-weight:500;
+      text-align:center;
+    }
+
+    /* temperature small bottom-right */
+    #temperature {
+      position:absolute;
+      right:18px;
+      bottom:12px;
+      font-size: clamp(12px,1.8vw,28px);
+      color:rgba(255,255,255,0.95);
+      z-index:20;
+    }
+
+    /* Make the time and date align to the right (alternate style — optional)
+       If you'd rather the time sit in the top-right as in your earlier screenshot,
+       we can switch to this class; currently clock is centered. */
+    .top-right {
+      position:absolute;
+      top:18px;
+      right:28px;
+      display:flex;
+      align-items:flex-end;
+      gap:14px;
+    }
+    .top-right #bigTime { font-size: clamp(48px,16vw,420px); text-align:right; }
+    .top-right #bigDate { text-align:right; margin-top:0.25rem; }
+
+    /* small-screen adjustments to ensure nothing wraps awkwardly */
+    @media (max-width:720px) {
+      .back-btn { padding:5px 6px; font-size:0.8rem; }
+      #bigTime { font-weight:700; }
+      #bigDate { font-size:calc(3vw + 6px); }
+    }
+
+  </style>
 </head>
 <body>
 
-<!-- Back button -->
-<button class="back-button" onclick="goBack()">Back</button>
+  <!-- MAIN MENU -->
+  <div id="menu" class="screen menu-screen active">
+    <h1 style="color:white;margin-bottom:10px">Dashboard Hub</h1>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+      <button class="menu-btn" onclick="showScreen('tableau')">Tableau Dashboard</button>
+      <button class="menu-btn" onclick="showScreen('sheets')">Google Sheets</button>
+      <button class="menu-btn" onclick="showScreen('calendar')">Notion Calendar</button>
+      <button class="menu-btn" onclick="showScreen('clock')">Full Screen Clock</button>
+    </div>
+  </div>
 
-<!-- Top section: time & date -->
-<div class="top-bar">
-    <div id="time">00:00 PM</div>
-    <div id="date">Thursday, August 7, 2025</div>
-</div>
+  <!-- TABLEAU -->
+  <div id="tableau" class="screen">
+    <button class="back-btn" onclick="goBack()" title="Back (hover to see)">Back</button>
+    <tableau-viz src="https://10ax.online.tableau.com/t/josedlr00/views/WeightTrackerDashboard/MainDash" hide-tabs toolbar="top"></tableau-viz>
+  </div>
 
-<!-- Bottom right: temperature -->
-<div class="bottom-right" id="temperature">--°F</div>
+  <!-- GOOGLE SHEETS -->
+  <div id="sheets" class="screen">
+    <button class="back-btn" onclick="goBack()" title="Back (hover to see)">Back</button>
+    <iframe src="https://docs.google.com/spreadsheets/d/1CpnTpxmUUHqJXpCurCIsjU-AQgqy2CwEkvJ-ASeVhtY/edit?usp=sharing"></iframe>
+  </div>
+
+  <!-- NOTION CALENDAR -->
+  <div id="calendar" class="screen">
+    <button class="back-btn" onclick="goBack()" title="Back (hover to see)">Back</button>
+    <iframe src="https://calendar.notion.so/calendar/am9zZWRscjAwQGdtYWlsLmNvbS85MThmNGIxYy00ZTJmLTRkYmItOWMxMy1iODY0ZGJiMTFlYzE="></iframe>
+  </div>
+
+  <!-- CLOCK (FULL SCREEN) -->
+  <div id="clock" class="screen" role="application" aria-label="Full screen clock">
+    <!-- tiny back -->
+    <button class="back-btn" onclick="goBack()" title="Back (hover to see)">Back</button>
+
+    <!-- Centered big time + date -->
+    <div id="clockScreen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;">
+      <div id="bigTime" aria-live="polite">00:00 AM</div>
+      <div id="bigDate">Thursday, August 7, 2025</div>
+    </div>
+
+    <!-- temp bottom-right -->
+    <div id="temperature">72°F</div>
+  </div>
 
 <script>
-function updateClock() {
-    const now = new Date();
+/* ---- Screen switching ---- */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 
-    // Time
-    let hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    document.getElementById('time').textContent = 
-        `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
-
-    // Date
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('date').textContent = now.toLocaleDateString(undefined, options);
-}
-
-// Dummy temperature (replace with API if needed)
-function updateTemperature() {
-    // Example: random temp for demo
-    const temp = Math.floor(Math.random() * 15) + 65;
-    document.getElementById('temperature').textContent = `${temp}°F`;
+  if (id === 'clock') {
+    startClock();
+  } else {
+    stopClock();
+  }
 }
 
 function goBack() {
-    // Replace with your back navigation logic
-    alert('Back button clicked');
+  // If fullscreen, exit fullscreen
+  if (document.fullscreenElement) {
+    document.exitFullscreen().catch(()=>{});
+  }
+  showScreen('menu');
 }
 
-setInterval(updateClock, 1000);
-updateClock();
-updateTemperature();
+/* ---- Clock functions ---- */
+let clockInterval = null;
+
+function startClock() {
+  updateClock();
+  if (!clockInterval) clockInterval = setInterval(updateClock, 1000);
+}
+
+function stopClock() {
+  if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
+}
+
+function updateClock() {
+  const now = new Date();
+
+  // Format time as hh:mm AM/PM (two-digit hours)
+  let hours = now.getHours();
+  const minutes = String(now.getMinutes()).padStart(2,'0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const hourStr = String(hours).padStart(2,'0');
+
+  // Place a space before AM/PM block (keeps large text readable)
+  document.getElementById('bigTime').textContent = `${hourStr}:${minutes} ${ampm}`;
+
+  // Localized full date
+  const dateStr = now.toLocaleDateString(undefined, { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('bigDate').textContent = dateStr;
+
+  // If you want real temperature, call API here and update #temperature
+  // (we currently leave placeholder or previously-set value)
+}
+
+/* start/stop based on active screen on load */
+document.addEventListener('visibilitychange', () => {
+  const active = document.querySelector('.screen.active')?.id;
+  if (active === 'clock') startClock(); else stopClock();
+});
+
+// initialize to menu
+showScreen('menu');
 </script>
 
 </body>

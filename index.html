@@ -1,329 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dashboard Hub</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Screen Clock</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
 
-  <script type="module" src="https://10ax.online.tableau.com/javascripts/api/tableau.embedding.3.latest.min.js"></script>
+        #main-menu, #tableau-view, #website-view, #clock-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow: hidden;
-      background: black;
-    }
+        #main-menu {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
 
-    .screen {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      width: 100vw;
-      z-index: 0;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
+        button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            margin: 10px;
+            cursor: pointer;
+        }
 
-    .active {
-      z-index: 1;
-      opacity: 1;
-      pointer-events: auto;
-    }
+        #time {
+            font-size: 10vw;
+            font-weight: bold;
+        }
 
-    .menu-screen {
-      background-color: #f5f5f5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-    }
+        #date {
+            font-size: 3vw;
+            margin-top: 10px;
+        }
 
-    .menu-screen h1 {
-      margin-bottom: 20px;
-    }
-
-    .menu-screen button,
-    .back-btn,
-    .fullscreen-btn {
-      padding: 12px 24px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      background-color: #0078d4;
-      color: white;
-      transition: background-color 0.3s ease;
-    }
-
-    .menu-screen button:hover,
-    .back-btn:hover,
-    .fullscreen-btn:hover {
-      background-color: #005fa3;
-    }
-
-    iframe, tableau-viz {
-      width: 100vw;
-      height: 100vh;
-      border: none;
-      display: block;
-    }
-
-    .back-btn-container {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 10;
-    }
-
-    .fullscreen-btn-container {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 10;
-      display: flex;
-      gap: 10px;
-    }
-
-    #clockView {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background-color: black;
-      gap: 5vw;
-      flex-wrap: wrap;
-      padding-bottom: 80px;
-    }
-
-    .clock-box {
-      position: relative;
-      width: 28vw;
-      height: 28vw;
-      border-radius: 50%;
-      background: black;
-      color: #00f0ff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-      box-shadow: 0 0 20px #00f0ff44;
-    }
-
-    .progress-ring {
-      position: absolute;
-      top: 0;
-      left: 0;
-      transform: rotate(-90deg);
-    }
-
-    .progress-ring circle {
-      fill: none;
-      stroke: #00f0ff;
-      stroke-width: 6;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 0.3s ease;
-    }
-
-    .clock-number {
-      font-size: 7vw;
-      z-index: 2;
-    }
-
-    .clock-label {
-      font-size: 1.5vw;
-      color: #00f0ff;
-      margin-top: 1vw;
-      z-index: 2;
-    }
-
-    #regularTime {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.6vw;
-      color: white;
-      font-weight: 500;
-      text-align: center;
-    }
-
-    #temperature {
-      position: absolute;
-      bottom: 10px;
-      right: 20px;
-      font-size: 1.6vw;
-      color: white;
-      font-weight: 500;
-    }
-
-    @media (max-width: 800px) {
-      .clock-box {
-        width: 40vw;
-        height: 40vw;
-      }
-
-      .clock-number {
-        font-size: 10vw;
-      }
-
-      .clock-label {
-        font-size: 4vw;
-      }
-
-      #regularTime,
-      #temperature {
-        font-size: 3.5vw;
-      }
-    }
-  </style>
+        #temp {
+            font-size: 2vw;
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+        }
+    </style>
 </head>
 <body>
-
-  <!-- Main Menu -->
-  <div id="menu" class="screen menu-screen active">
-    <h1>Select a View</h1>
-    <button onclick="showScreen('tableauScreen')">Tableau Dashboard</button>
-    <button onclick="showScreen('sheetsScreen')">Google Sheets</button>
-    <button onclick="showScreen('calendarScreen')">Notion Calendar</button>
-    <button onclick="showScreen('clockScreen')">Today's Date & Time</button>
-  </div>
-
-  <!-- Tableau -->
-  <div id="tableauScreen" class="screen">
-    <div class="back-btn-container">
-      <button class="back-btn" onclick="goBack()">← Back</button>
-    </div>
-    <tableau-viz
-      src="https://10ax.online.tableau.com/t/josedlr00/views/WeightTrackerDashboard/MainDash"
-      hide-tabs
-      toolbar="top">
-    </tableau-viz>
-  </div>
-
-  <!-- Google Sheets -->
-  <div id="sheetsScreen" class="screen">
-    <div class="back-btn-container">
-      <button class="back-btn" onclick="goBack()">← Back</button>
-    </div>
-    <iframe src="https://docs.google.com/spreadsheets/d/1CpnTpxmUUHqJXpCurCIsjU-AQgqy2CwEkvJ-ASeVhtY/edit?usp=sharing"></iframe>
-  </div>
-
-  <!-- Notion Calendar -->
-  <div id="calendarScreen" class="screen">
-    <div class="back-btn-container">
-      <button class="back-btn" onclick="goBack()">← Back</button>
-    </div>
-    <iframe src="https://calendar.notion.so/calendar/am9zZWRscjAwQGdtYWlsLmNvbS85MThmNGIxYy00ZTJmLTRkYmItOWMxMy1iODY0ZGJiMTFlYzE="></iframe>
-  </div>
-
-  <!-- Clock -->
-  <div id="clockScreen" class="screen">
-    <div class="back-btn-container">
-      <button class="back-btn" onclick="goBack()">← Back</button>
-    </div>
-    <div class="fullscreen-btn-container">
-      <button class="fullscreen-btn" id="enterFull" onclick="goFullScreen()">⛶ Full Screen</button>
-      <button class="fullscreen-btn" id="exitFull" onclick="exitFullScreen()" style="display:none;">✕ Exit Full Screen</button>
+    <!-- Main Menu -->
+    <div id="main-menu">
+        <button onclick="showTableau()">Open Tableau Dashboard</button>
+        <button onclick="showWebsite('https://www.google.com')">Open Google</button>
+        <button onclick="showClock()">Show Clock</button>
     </div>
 
-    <div id="clockView">
-      <div class="clock-box">
-        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 120 120">
-          <circle r="50" cx="60" cy="60" stroke-dasharray="314.16" stroke-dashoffset="0" id="hourRing" />
-        </svg>
-        <div id="clockHour" class="clock-number">--</div>
-        <div class="clock-label">HOURS</div>
-      </div>
-      <div class="clock-box">
-        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 120 120">
-          <circle r="50" cx="60" cy="60" stroke-dasharray="314.16" stroke-dashoffset="0" id="minuteRing" />
-        </svg>
-        <div id="clockMinute" class="clock-number">--</div>
-        <div class="clock-label">MINUTES</div>
-      </div>
-      <div class="clock-box">
-        <svg class="progress-ring" width="100%" height="100%" viewBox="0 0 120 120">
-          <circle r="50" cx="60" cy="60" stroke-dasharray="314.16" stroke-dashoffset="0" id="secondRing" />
-        </svg>
-        <div id="clockSecond" class="clock-number">--</div>
-        <div class="clock-label">SECONDS</div>
-      </div>
+    <!-- Tableau View -->
+    <div id="tableau-view">
+        <button onclick="goBack()">Back</button>
+        <iframe src="YOUR_TABLEAU_URL" width="100%" height="100%" style="border:none;"></iframe>
     </div>
 
-    <!-- Regular Time + Temperature -->
-    <div id="regularTime">--</div>
-    <div id="temperature">72°F</div>
-  </div>
+    <!-- Website View -->
+    <div id="website-view">
+        <button onclick="goBack()">Back</button>
+        <iframe id="website-frame" src="" width="100%" height="100%" style="border:none;"></iframe>
+    </div>
 
-  <script>
-    const CIRCLE_LENGTH = 2 * Math.PI * 50;
+    <!-- Clock View -->
+    <div id="clock-view">
+        <button onclick="goBack()">Back</button>
+        <div id="time"></div>
+        <div id="date"></div>
+        <div id="temp">Loading...</div>
+    </div>
 
-    function updateClock() {
-      const now = new Date();
-
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      const seconds = now.getSeconds();
-
-      document.getElementById("clockHour").textContent = String(hours).padStart(2, '0');
-      document.getElementById("clockMinute").textContent = String(minutes).padStart(2, '0');
-      document.getElementById("clockSecond").textContent = String(seconds).padStart(2, '0');
-
-      document.getElementById("hourRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - (hours % 24) / 24);
-      document.getElementById("minuteRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - minutes / 60);
-      document.getElementById("secondRing").style.strokeDashoffset = CIRCLE_LENGTH * (1 - seconds / 60);
-
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      const dateStr = now.toLocaleDateString(undefined, options);
-      const timeStr = now.toLocaleTimeString();
-      document.getElementById("regularTime").textContent = `${dateStr} - ${timeStr}`;
-    }
-
-    function showScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
-
-      if (screenId === 'clockScreen') {
-        updateClock();
-        if (!window.clockInterval) {
-          window.clockInterval = setInterval(updateClock, 1000);
+    <script>
+        function showTableau() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('tableau-view').style.display = 'block';
         }
-      } else {
-        clearInterval(window.clockInterval);
-        window.clockInterval = null;
-      }
-    }
 
-    function goBack() {
-      if (document.exitFullscreen) document.exitFullscreen();
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('menu')?.classList.add('active');
-    }
+        function showWebsite(url) {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('website-frame').src = url;
+            document.getElementById('website-view').style.display = 'block';
+        }
 
-    function goFullScreen() {
-      const el = document.getElementById("clockScreen");
-      if (el.requestFullscreen) el.requestFullscreen();
-    }
+        function showClock() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('clock-view').style.display = 'flex';
+            updateClock();
+            setInterval(updateClock, 1000);
+            getTemperature();
+        }
 
-    function exitFullScreen() {
-      if (document.exitFullscreen) document.exitFullscreen();
-    }
+        function goBack() {
+            document.getElementById('main-menu').style.display = 'flex';
+            document.getElementById('tableau-view').style.display = 'none';
+            document.getElementById('website-view').style.display = 'none';
+            document.getElementById('clock-view').style.display = 'none';
+        }
 
-    document.addEventListener("fullscreenchange", () => {
-      document.getElementById("enterFull").style.display = document.fullscreenElement ? "none" : "inline-block";
-      document.getElementById("exitFull").style.display = document.fullscreenElement ? "inline-block" : "none";
-    });
+        function updateClock() {
+            const now = new Date();
+            const time = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const date = now.toLocaleDateString([], {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+            document.getElementById('time').textContent = time;
+            document.getElementById('date').textContent = date;
+        }
 
-    setInterval(updateClock, 1000);
-    updateClock();
-  </script>
-
+        function getTemperature() {
+            // Dummy temp for now — can be replaced with live API call
+            document.getElementById('temp').textContent = "72°F";
+        }
+    </script>
 </body>
 </html>

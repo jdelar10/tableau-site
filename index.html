@@ -42,8 +42,8 @@
         position: absolute;
         top: 20px;
         padding: 8px 14px;
-        background-color: rgba(68, 68, 68, 0.6);
-        color: white;
+        background-color: rgba(0, 0, 0, 0.3); /* very dark & barely visible */
+        color: rgba(255, 255, 255, 0.5); /* slightly transparent text */
         border: none;
         border-radius: 5px;
         cursor: pointer;
@@ -59,7 +59,8 @@
     }
 
     .button:hover {
-        background-color: rgba(102, 102, 102, 0.8);
+        background-color: rgba(0, 0, 0, 0.6); /* slightly more visible on hover */
+        color: white;
     }
 </style>
 </head>
@@ -109,7 +110,7 @@ function toggleFullScreen() {
 
 async function getTemperature() {
     try {
-        let response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7128&longitude=-74.0060&current_weather=true');
+        let response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=40.7128&longitude=-74.0060&current_weather=true&temperature_unit=fahrenheit');
         let data = await response.json();
         let temp = Math.round(data.current_weather.temperature);
         document.getElementById('temperature').textContent = `${temp}°F`;
